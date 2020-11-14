@@ -4,6 +4,7 @@ import sys
 import telegram
 from telegram.ext import Updater, CommandHandler
 import random
+from functions.scrapper import getTeslaActionsPrice
 
 # config logggin
 
@@ -14,45 +15,54 @@ logging.basicConfig(
 
 logger = logging.getLogger()
 
-# solicitar token
-
+# request token
 TOKEN = os.getenv("TOKEN")
-
+# request mode
 mode = os.getenv("MODE")
 if mode == "dev":
     # Acceso local
     def run(updater):
         updater.start_polling()
-        print("Bot cargado")
+        print("Bot Ready")
         updater.idle()  # permite finalizar nuestro bot con ctrl + c
 elif mode == "prod":
     def run(updater):
         PORT = int(os.environ.get("PORT", "8443"))
         HEROKU_APP_NAME = os.environ.get("HEROKU_APP_NAME")
         updater.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN)
-        updater.bot.set_webhook(f"https://{HEROKU_APP_NAME}.herokuapp.com/{TOKEN}")
+        updater.bot.set_webhook(
+            f"https://{HEROKU_APP_NAME}.herokuapp.com/{TOKEN}")
 else:
-    logger.info("No se especifico el MODE.")
+    logger.info("Specify MODE..")
     sys.exit(1)
 
+
 def greet(update, context):
-    logger.info(f"El usuario {update.effective_user['username']}, ha saludado")
-    name=update.effective_user['first_name']
-    greets=['Hello', 'Welcome', 'Greetings!',
+    """Function that show random greet"""
+    name = update.effective_user['first_name']
+    greets = ['Hello', 'Welcome', 'Greetings!',
               'Salutatons!', 'Good day!', 'Yo!']
     update.message.reply_text(f"{random.choice(greets)}, {name}")
 
+
+def tesla(update, context):
+    """call getTeslaActionsPrice and show the value of this"""
+    update.message.reply_text(
+        f"tesla actions price: ${getTeslaActionsPrice()} USD")
+
+
 if __name__ == "__main__":
-    # obtenemos informacion de nuestro bot
+    # get information from the bot
     my_bot = telegram.Bot(token=TOKEN)
 
-    # enlazamos updater con nuestro bot
+    # link updater with the bot
     updater = Updater(my_bot.token, use_context=True)
 
-    # creamos despachador
+    # create dispatcher
     dp = updater.dispatcher
 
-    # creamos manejador
+    # create handler
     dp.add_handler(CommandHandler("hi", greet))
+    dp.add_handler(CommandHandler("tesla", tesla))
 
     run(updater)
