@@ -24,7 +24,7 @@ if mode == "dev":
     def run(updater):
         updater.start_polling()
         print("Bot Ready")
-        updater.idle()  # permite finalizar nuestro bot con ctrl + c
+        updater.idle()  # allows to end our bot with ctrl + c
 elif mode == "prod":
     def run(updater):
         PORT = int(os.environ.get("PORT", "8443"))
