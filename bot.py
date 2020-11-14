@@ -7,7 +7,6 @@ import random
 from functions.scrapper import getTeslaActionsPrice
 
 # config logggin
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -16,25 +15,29 @@ logging.basicConfig(
 logger = logging.getLogger()
 
 # request token
-TOKEN = os.getenv("TOKEN")
-# request mode
-mode = os.getenv("MODE")
-if mode == "dev":
-    # Acceso local
-    def run(updater):
+TOKEN = os.environ.get("TOKEN", None)
+if TOKEN is None:
+    logger.info("Specify TOKEN.")
+    sys.exit(1)
+
+# request MODE
+MODE = os.environ.get("MODE", None)
+if MODE is None or MODE not in ["dev", "prod"]:
+    logger.info("Specify MODE.")
+    sys.exit(1)
+
+
+def run(updater):
+    if MODE == "dev":
         updater.start_polling()
         print("Bot Ready")
         updater.idle()  # allows to end our bot with ctrl + c
-elif mode == "prod":
-    def run(updater):
+    elif MODE == "prod":
         PORT = int(os.environ.get("PORT", "8443"))
         HEROKU_APP_NAME = os.environ.get("HEROKU_APP_NAME")
         updater.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN)
         updater.bot.set_webhook(
             f"https://{HEROKU_APP_NAME}.herokuapp.com/{TOKEN}")
-else:
-    logger.info("Specify MODE..")
-    sys.exit(1)
 
 
 def greet(update, context):
@@ -53,7 +56,11 @@ def tesla(update, context):
 
 if __name__ == "__main__":
     # get information from the bot
-    my_bot = telegram.Bot(token=TOKEN)
+    try:
+        my_bot = telegram.Bot(token=TOKEN)
+    except telegram.error.InvalidToken:
+        logger.info("Invalid TOKEN.")
+        sys.exit(1)
 
     # link updater with the bot
     updater = Updater(my_bot.token, use_context=True)
