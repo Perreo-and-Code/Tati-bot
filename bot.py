@@ -28,6 +28,7 @@ if MODE is None or MODE not in ["dev", "prod"]:
 
 
 def run(updater):
+    """Start execution of the bot"""
     if MODE == "dev":
         updater.start_polling()
         print("Bot Ready")
