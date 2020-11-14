@@ -51,7 +51,7 @@ def sprintDaily(update, context):
     chat = update.effective_chat['id']
     username = update.effective_user['username']
 
-    logger.info(f"The User {username}, has get information about sprint")
+    logger.info(f"The User {username}, has got information about sprint")
 
     message = dataSprint()
 

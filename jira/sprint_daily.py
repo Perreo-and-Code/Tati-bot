@@ -66,12 +66,12 @@ def dataSprint():
         elif name_column == "To Do":
             to_do.func_data_total()
         elif name_column == "Review":
-            to_do.func_data_total()
+            review.func_data_total()
         elif name_column == "Blocked":
             blocked.func_data_total()
 
     message = f"""
-    &#128204 Spint: <b>{name_sprint}</b>
+    &#128204 Sprint: <b>{name_sprint}</b>
     Days left: {day_left}
     Total task: {total_task}
 
