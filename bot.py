@@ -4,7 +4,7 @@ import sys
 import telegram
 from telegram.ext import Updater, CommandHandler
 import random
-from jira.sprint_daily import dataSprint
+from jira_command.sprint_daily import dataSprint
 
 # config logggin
 
@@ -52,8 +52,9 @@ def sprintDaily(update, context):
     username = update.effective_user['username']
 
     logger.info(f"The User {username}, has got information about sprint")
+    text = update.message.text
 
-    message = dataSprint()
+    message = dataSprint(text)
 
     context.bot.sendMessage(
         chat_id=chat,
