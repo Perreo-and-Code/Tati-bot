@@ -4,6 +4,7 @@ import sys
 import telegram
 from telegram.ext import Updater, CommandHandler
 import random
+from jira_command.sprint_daily import dataSprint
 
 # config logggin
 
@@ -30,17 +31,36 @@ elif mode == "prod":
         PORT = int(os.environ.get("PORT", "8443"))
         HEROKU_APP_NAME = os.environ.get("HEROKU_APP_NAME")
         updater.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN)
-        updater.bot.set_webhook(f"https://{HEROKU_APP_NAME}.herokuapp.com/{TOKEN}")
+        updater.bot.set_webhook(
+            f"https://{HEROKU_APP_NAME}.herokuapp.com/{TOKEN}")
 else:
     logger.info("No se especifico el MODE.")
     sys.exit(1)
 
+
 def greet(update, context):
     logger.info(f"El usuario {update.effective_user['username']}, ha saludado")
-    name=update.effective_user['first_name']
-    greets=['Hello', 'Welcome', 'Greetings!',
+    name = update.effective_user['first_name']
+    greets = ['Hello', 'Welcome', 'Greetings!',
               'Salutatons!', 'Good day!', 'Yo!']
     update.message.reply_text(f"{random.choice(greets)}, {name}")
+
+
+def sprintDaily(update, context):
+    """ Get data from api Jira sprint """
+    chat = update.effective_chat['id']
+    username = update.effective_user['username']
+
+    logger.info(f"The User {username}, has got information about sprint")
+    text = update.message.text
+
+    message = dataSprint(text)
+
+    context.bot.sendMessage(
+        chat_id=chat,
+        parse_mode='HTML',
+        text=message)
+
 
 if __name__ == "__main__":
     # obtenemos informacion de nuestro bot
@@ -54,5 +74,6 @@ if __name__ == "__main__":
 
     # creamos manejador
     dp.add_handler(CommandHandler("hi", greet))
+    dp.add_handler(CommandHandler('sprintDaily', sprintDaily))
 
     run(updater)
