@@ -4,7 +4,10 @@ import sys
 import telegram
 from telegram.ext import Updater, CommandHandler
 import random
-from functions.scrapper import getTeslaActionsPrice
+from functions.get_tesla_actions_price import getTeslaActionsPrice
+from functions.jira_register_user_locally import registerJiraUser, WrongUsage
+from functions.get_user_issues import getUserIssues, formatIssuesByUser
+from functions.exceptions import *
 
 # config logggin
 logging.basicConfig(
@@ -15,9 +18,9 @@ logging.basicConfig(
 logger = logging.getLogger()
 
 # request token
-TOKEN = os.environ.get("TOKEN", None)
+TOKEN = os.environ.get("API_TOKEN_BOT", None)
 if TOKEN is None:
-    logger.info("Specify TOKEN.")
+    logger.info("Specify API_TOKEN_BOT.")
     sys.exit(1)
 
 # request MODE
@@ -55,12 +58,41 @@ def tesla(update, context):
         f"tesla actions price: ${getTeslaActionsPrice()} USD")
 
 
+def jiraRegister(update, context):
+    """send data needly to create a new register that store username and jira user id"""
+    username = update.effective_user["username"]
+    args = context.args
+    try:
+        registerJiraUser(username, args)
+    except WrongUsage as e:
+        update.message.reply_text(f"{str(e)}")
+    else:
+        update.message.reply_text("successful registration!")
+
+
+def getMyIssues(update, context):
+    """show issue info from an specific user"""
+    username = update.effective_user["username"]
+    args = context.args
+    chat = update.effective_chat['id']
+    try:
+        issues = getUserIssues(args, username)
+    except Exception as e:
+        update.message.reply_text(f"{str(e)}")
+    else:
+        formated_data = formatIssuesByUser(issues)
+        context.bot.sendMessage(
+            chat_id=chat,
+            parse_mode='HTML',
+            text=formated_data)
+
+
 if __name__ == "__main__":
     # get information from the bot
     try:
         my_bot = telegram.Bot(token=TOKEN)
     except telegram.error.InvalidToken:
-        logger.info("Invalid TOKEN.")
+        logger.info("Invalid API_TOKEN_BOT.")
         sys.exit(1)
 
     # link updater with the bot
@@ -72,5 +104,7 @@ if __name__ == "__main__":
     # create handler
     dp.add_handler(CommandHandler("hi", greet))
     dp.add_handler(CommandHandler("tesla", tesla))
+    dp.add_handler(CommandHandler("jiraRegister", jiraRegister))
+    dp.add_handler(CommandHandler("getMyIssues", getMyIssues))
 
     run(updater)
