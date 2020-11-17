@@ -23,10 +23,18 @@ def getUserIssues(args, username):
     if JIRA_TOKEN is None:
         raise MissingToken("Insert a JIRA_TOKEN")
 
+    JIRA_EMAIL = os.environ.get("JIRA_EMAIL", None)
+    if JIRA_EMAIL is None:
+        raise MissingJiraEmail("Insert a JIRA_EMAIL")
+
+    JIRA_DOMAIN = os.environ.get("JIRA_DOMAIN", None)
+    if JIRA_DOMAIN is None:
+        raise MissingJiraDomain("Insert a JIRA_DOMAIN")
+
     # if the is an invalid token it will fail so the try cath handle raising an exception
     try:
-        jira = JIRA(basic_auth=("stevenbrand@treenapp.com", JIRA_TOKEN),
-                    options={"server": "https://treen.atlassian.net"})
+        jira = JIRA(basic_auth=(JIRA_EMAIL, JIRA_TOKEN),
+                    options={"server": JIRA_DOMAIN})
     except Exception:
         raise InvalidToken("Invalid JIRA_TOKEN")
 

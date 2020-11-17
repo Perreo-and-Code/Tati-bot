@@ -9,3 +9,9 @@ class WrongUsage(Exception):
 
 class MissingRegister(Exception):
     pass
+
+class MissingJiraEmail(Exception):
+    pass
+
+class MissingJiraDomain(Exception):
+    pass
